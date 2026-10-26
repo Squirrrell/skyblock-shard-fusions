@@ -29,8 +29,8 @@ import {
 } from "./ui.js";
 
 const COLUMNS = 8;
-// Cost, revenue and weekly volume are hidden on phones.
-const HIDDEN_ON_PHONE = [3, 4, 7];
+// Cost, revenue, ROI and weekly volume are hidden on phones.
+const HIDDEN_ON_PHONE = [3, 4, 6, 7];
 
 const state = {
   fusions: null,
@@ -240,7 +240,7 @@ function rowHtml(row, rank) {
       <td class="num col-hide-sm">${coins(row.cost)}</td>
       <td class="num col-hide-sm">${coins(row.revenue)}</td>
       <td class="num ${inflated ? "suspect" : "gain"}${flash}"${inflated ? ' title="Unreliable: output price looks inflated"' : ""}>${signed(row.profit)}</td>
-      <td class="num">${pct(row.roi)}</td>
+      <td class="num col-hide-sm">${pct(row.roi)}</td>
       <td class="num col-hide-sm">${compactFmt.format(row.volume)}</td>
     </tr>
     ${open ? detailHtml(row) : ""}`;

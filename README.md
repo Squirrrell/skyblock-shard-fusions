@@ -50,6 +50,16 @@ Bazaar tax defaults to 1.25% and can be changed in the toolbar. Weekly volume is
 
 Not modelled: order-book depth beyond one fusion's worth of shards, and Hunting XP gained from fusing.
 
+## Chains page
+
+`chains.html` (the "Chains" tab) ranks shards you can make by feeding one fusion's output into the next instead of selling it, for example buying Flaming Spider and Shinyfish, fusing them into Sun Fish, then fusing Sun Fish into Galaxy Fish.
+
+- For every shard it finds the cheapest route of up to 2, 3 or 4 stacked fusion steps (you choose). Each step's inputs are either bought or made by a shorter route, whichever is cheaper.
+- One **batch** is a single run of the final fusion. The page works out whole fusions for every step below it, the shopping list, and any spare shards left over from rounding up (counted as sold).
+- Columns show profit per batch, profit per fusion (useful for long chains that take many fusions), the number of steps and fusions, and the return on cost. Expand a row to see the route as a tree and the fusions in the order you'd do them.
+- By default only real chains (2+ steps) are listed, since single fusions are on the main page. The buy/sell modes, tax, Crocodile level and the inflated-price warning are shared with the main page.
+- Chains use top-of-book prices (lowest offer or highest order) rather than walking the order book, because chain quantities vary by route.
+
 ## Data sources
 
 - **Prices:** [Hypixel Bazaar API](https://api.hypixel.net/v2/skyblock/bazaar), no API key needed.
