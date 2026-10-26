@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shard Fusion Flips</title>
+  <meta name="description" content="Live Bazaar profit ranking for Hypixel SkyBlock shard fusions.">
+  <link rel="icon" href="https://raw.githubusercontent.com/Campionnn/SkyShards/master/public/shardIcons/L4.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="./src/styles.css">
+  <script>
+    // Apply a saved theme before first paint so there is no flash.
+    try { const t = localStorage.getItem("sff-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+  </script>
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="./" aria-label="Shard Fusion Flips home">
+        <img src="https://raw.githubusercontent.com/Campionnn/SkyShards/master/public/shardIcons/L4.png" alt="" width="28" height="28">
+        <span>Shard Fusion Flips</span>
+      </a>
+      <div class="status" aria-live="polite">
+        <span id="status-text">Loading prices</span>
+        <button class="icon-btn" id="refresh-btn" type="button" aria-label="Refresh prices now" title="Refresh prices now">
+          <i class="ph ph-arrows-clockwise" aria-hidden="true"></i>
+        </button>
+        <button class="icon-btn" id="theme-btn" type="button" aria-label="Toggle light or dark theme" title="Toggle theme">
+          <i class="ph ph-moon" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="controls" aria-label="Pricing and filters">
+      <div class="control-group">
+        <span class="label" id="buy-label">Buy inputs with</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="buy-label" data-setting="buyMode">
+          <button type="button" role="radio" data-value="instaBuy">Insta-buy</button>
+          <button type="button" role="radio" data-value="buyOrder">Buy order</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="label" id="sell-label">Sell output with</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="sell-label" data-setting="sellMode">
+          <button type="button" role="radio" data-value="instaSell">Insta-sell</button>
+          <button type="button" role="radio" data-value="sellOffer">Sell offer</button>
+        </div>
+      </div>
+      <div class="control-group narrow tax">
+        <label class="label" for="tax-input">Bazaar tax %</label>
+        <input class="field" id="tax-input" type="number" min="0" max="10" step="0.125" inputmode="decimal">
+      </div>
+
+      <div class="control-group grow">
+        <label class="label" for="search-input">Search shard</label>
+        <div class="field-icon">
+          <i class="ph ph-magnifying-glass" aria-hidden="true"></i>
+          <input class="field" id="search-input" type="search" placeholder="Any input or output, e.g. Kiwi" autocomplete="off">
+        </div>
+      </div>
+      <div class="control-group narrow">
+        <label class="label" for="volume-input">Min weekly volume</label>
+        <input class="field" id="volume-input" type="number" min="0" step="100" inputmode="numeric">
+      </div>
+      <div class="control-group narrow">
+        <label class="label" for="budget-input">Max cost per fusion</label>
+        <input class="field" id="budget-input" type="number" min="0" step="10000" inputmode="numeric" placeholder="No limit">
+      </div>
+      <div class="control-group">
+        <span class="label" id="rarity-label">Output rarity</span>
+        <div class="chips" role="group" aria-labelledby="rarity-label" id="rarity-chips"></div>
+      </div>
+      <div class="control-group">
+        <label class="label" for="sort-select">Sort by</label>
+        <select class="field" id="sort-select">
+          <option value="profit">Profit per fusion</option>
+          <option value="roi">Return on cost</option>
+          <option value="volume">Weekly volume</option>
+        </select>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="unique-toggle">
+        <span class="switch-track" aria-hidden="true"></span>
+        <span>Best recipe per output only</span>
+      </label>
+    </section>
+
+    <div class="banner" id="error-banner" role="alert" hidden>
+      <i class="ph ph-warning" aria-hidden="true"></i>
+      <span id="error-text"></span>
+    </div>
+
+    <section class="overview" id="overview" aria-label="Best fusion right now"></section>
+
+    <section class="results" aria-label="Ranked fusions">
+      <div class="table-scroll">
+        <table class="fusions">
+          <thead>
+            <tr>
+              <th class="col-rank" scope="col">#</th>
+              <th scope="col">Fusion</th>
+              <th scope="col">Result</th>
+              <th class="num col-hide-sm" scope="col">Cost</th>
+              <th class="num col-hide-sm" scope="col">Revenue</th>
+              <th class="num" scope="col">Profit</th>
+              <th class="num" scope="col">ROI</th>
+              <th class="num col-hide-sm" scope="col" title="Weekly volume of the slowest market in this fusion">Weekly vol.</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="table-foot">
+        <span id="count-text"></span>
+        <button class="btn" id="more-btn" type="button" hidden>Show 100 more</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <p>Prices from the Hypixel Bazaar API, refreshed every 60 seconds. Fusion recipes from <a href="https://github.com/Campionnn/SkyShards">SkyShards</a> (<span id="data-source">loading</span>). Profit assumes you pick the most valuable output and ignores Pure Reptile doubling.</p>
+  </footer>
+</body>
+</html>
