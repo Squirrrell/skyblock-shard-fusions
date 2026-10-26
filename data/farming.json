@@ -1,0 +1,926 @@
+{
+  "generated": "2026-10-26",
+  "shards": {
+    "C4": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Moonglade Marsh"
+      ],
+      "rate": 216
+    },
+    "C5": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Murkwater Depths",
+        "Murkwater Shallows"
+      ],
+      "rate": 1050
+    },
+    "C6": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Howling Cave"
+      ],
+      "rate": 850
+    },
+    "C7": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Moonglade Marsh"
+      ],
+      "rate": 108
+    },
+    "C9": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Lapis Quarry"
+      ],
+      "rate": 804
+    },
+    "C11": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Murkwater Depths",
+        "Murkwater Shallows"
+      ],
+      "rate": 1100
+    },
+    "C12": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Wyrmgrove Tomb"
+      ],
+      "rate": 696
+    },
+    "C13": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "C14": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 90.6
+    },
+    "C15": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Spider Mound"
+      ],
+      "rate": 660
+    },
+    "C17": {
+      "tools": [
+        "net",
+        "lasso"
+      ],
+      "zones": [
+        "Moonglade Marsh"
+      ],
+      "rate": 270
+    },
+    "C20": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Murkwater Depths",
+        "Murkwater Shallows"
+      ],
+      "rate": 114
+    },
+    "C21": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Dragon's Nest"
+      ],
+      "rate": 660
+    },
+    "C23": {
+      "tools": [
+        "net",
+        "lasso"
+      ],
+      "zones": [
+        "Murkwater Depths"
+      ],
+      "rate": 120
+    },
+    "C24": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 38.4
+    },
+    "C27": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Hub Crypts"
+      ],
+      "rate": 540
+    },
+    "C28": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "C30": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Stronghold"
+      ],
+      "rate": 750
+    },
+    "C31": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Moonglade Marsh"
+      ],
+      "rate": 5.4
+    },
+    "C32": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 293.25
+    },
+    "C33": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Magma Fields"
+      ],
+      "rate": 300
+    },
+    "C36": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Diamond Reserve",
+        "Obsidian Sanctuary"
+      ],
+      "rate": 768
+    },
+    "C39": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 36.707
+    },
+    "C45": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [],
+      "rate": 5.4
+    },
+    "C52": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 120
+    },
+    "C55": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 120
+    },
+    "C56": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Spring Path"
+      ],
+      "rate": 800
+    },
+    "C58": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Heights"
+      ],
+      "rate": 26
+    },
+    "C61": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 288
+    },
+    "C64": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 9.5
+    },
+    "C67": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [],
+      "rate": 7.2
+    },
+    "U12": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Spider's Den"
+      ],
+      "rate": 672
+    },
+    "U14": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Murkwater Depths",
+        "Murkwater Shallows"
+      ],
+      "rate": 345
+    },
+    "U15": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Dragon's Nest"
+      ],
+      "rate": 684
+    },
+    "U17": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [],
+      "rate": 7.8192
+    },
+    "U18": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Dragon's Nest"
+      ],
+      "rate": 732
+    },
+    "U19": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "U20": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Murkwater Depths",
+        "Murkwater Shallows"
+      ],
+      "rate": 1050
+    },
+    "U22": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "U26": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Dwarven Mines"
+      ],
+      "rate": 50
+    },
+    "U27": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 186
+    },
+    "U29": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Murkwater Depths",
+        "Murkwater Shallows"
+      ],
+      "rate": 34.8
+    },
+    "U30": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Howling Cave"
+      ],
+      "rate": 480
+    },
+    "U32": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Crimson Isle"
+      ],
+      "rate": 288
+    },
+    "U33": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Burning Desert"
+      ],
+      "rate": 570
+    },
+    "U36": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Zealot Bruiser Hideout"
+      ],
+      "rate": 564
+    },
+    "U38": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Stride-Ember Fissure"
+      ],
+      "rate": 600
+    },
+    "U40": {
+      "tools": [
+        "blackHole",
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "U41": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Lotus Atoll"
+      ],
+      "rate": 76
+    },
+    "U50": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Spring Depths",
+        "Spring Shallows"
+      ],
+      "rate": 225
+    },
+    "U56": {
+      "tools": [
+        "net",
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon",
+        "Spring Depths",
+        "Spring Shallows",
+        "Torrhus Springs"
+      ],
+      "rate": 120
+    },
+    "U60": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 64.0125
+    },
+    "U62": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Spring Shallows"
+      ],
+      "rate": 800
+    },
+    "U63": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 5.6
+    },
+    "U67": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [],
+      "rate": 4.2
+    },
+    "U68": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Hotspot Haven",
+        "Spring Depths"
+      ],
+      "rate": 800
+    },
+    "U69": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 24
+    },
+    "U72": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 24
+    },
+    "U75": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 24
+    },
+    "U78": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 4.2
+    },
+    "U91": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 306
+    },
+    "U94": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [],
+      "rate": 48.6
+    },
+    "U97": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "U100": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "U103": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "R6": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Great Ice Wall"
+      ],
+      "rate": 980
+    },
+    "R16": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "R18": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Drowned Reliquary"
+      ],
+      "rate": 480
+    },
+    "R21": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Dwarven Mines"
+      ],
+      "rate": 450
+    },
+    "R31": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Jungle"
+      ],
+      "rate": 240
+    },
+    "R32": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Lotus Atoll"
+      ],
+      "rate": 20
+    },
+    "R36": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Crimson Isle"
+      ],
+      "rate": 528
+    },
+    "R38": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 46.62
+    },
+    "R39": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Stronghold"
+      ],
+      "rate": 684
+    },
+    "R42": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Crimson Isle"
+      ],
+      "rate": 20
+    },
+    "R44": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Squid Cave"
+      ],
+      "rate": 210
+    },
+    "R49": {
+      "tools": [
+        "blackHole",
+        "lasso"
+      ],
+      "zones": [
+        "Moonglade Marsh"
+      ],
+      "rate": 24
+    },
+    "R50": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Murkwater Depths"
+      ],
+      "rate": 192
+    },
+    "R55": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [],
+      "rate": 2.4
+    },
+    "R56": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Crimson Isle"
+      ],
+      "rate": 66
+    },
+    "R63": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 18.354
+    },
+    "R64": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 3.2
+    },
+    "R84": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 0.15238095
+    },
+    "R85": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 100
+    },
+    "R88": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Pangolin Hideaway"
+      ],
+      "rate": 100
+    },
+    "R91": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Moonglade Marsh"
+      ],
+      "rate": 3.2
+    },
+    "R92": {
+      "tools": [
+        "net",
+        "lasso"
+      ],
+      "zones": [
+        "Spring Depths",
+        "Spring Shallows",
+        "Torrhus Springs"
+      ],
+      "rate": 24
+    },
+    "R97": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 100
+    },
+    "E13": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "E14": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 51
+    },
+    "E18": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Magma Chamber"
+      ],
+      "rate": 450
+    },
+    "E26": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Murkwater Depths"
+      ],
+      "rate": 120
+    },
+    "E27": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "The Dukedom"
+      ],
+      "rate": 85
+    },
+    "E31": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "E33": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "The Mist"
+      ],
+      "rate": 850
+    },
+    "E34": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Mystic Marsh"
+      ],
+      "rate": 240
+    },
+    "E37": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Garden"
+      ],
+      "rate": 48.6
+    },
+    "E43": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "The Wasteland"
+      ],
+      "rate": 80
+    },
+    "E52": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Torrhus Canyon"
+      ],
+      "rate": 6
+    },
+    "E58": {
+      "tools": [
+        "lasso"
+      ],
+      "zones": [
+        "Spring Path"
+      ],
+      "rate": 144
+    },
+    "L14": {
+      "tools": [
+        "net"
+      ],
+      "zones": [
+        "Murkwater Depths",
+        "Kelpwoven Tunnels"
+      ],
+      "rate": 204
+    },
+    "L17": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 30.84
+    },
+    "L27": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [
+        "Matriarch's Lair"
+      ],
+      "rate": 420
+    },
+    "L28": {
+      "tools": [
+        "blackHole",
+        "lasso"
+      ],
+      "zones": [
+        "Smoldering Tomb"
+      ],
+      "rate": 48
+    },
+    "L57": {
+      "tools": [
+        "blackHole"
+      ],
+      "zones": [],
+      "rate": 0.175824
+    }
+  }
+}
