@@ -157,6 +157,7 @@ img { display: block; }
 .tabs a:hover { color: var(--text); }
 .tabs a[aria-current="page"] { background: var(--surface-2); color: var(--text); }
 .tabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tab-short { display: none; }
 
 .status {
   display: flex;
@@ -658,6 +659,105 @@ select.field { padding-right: 8px; cursor: pointer; }
 .steps { margin: 0; padding-left: 20px; font-size: 13px; }
 .steps li { padding: 3px 0; }
 
+/* Farming page: one card per tool, tool tags and the how-to list */
+.tool-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 20px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+}
+
+button.tool-card { cursor: pointer; transition: border-color 0.2s var(--ease), transform 0.15s var(--ease); }
+button.tool-card:hover { border-color: var(--border-strong); }
+button.tool-card:active { transform: scale(0.99); }
+button.tool-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tool-card.is-active { border-color: var(--accent); }
+
+.tool-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.tool-card h2 i { font-size: 18px; color: var(--accent); }
+.tool-best .shard { font-size: 15px; font-weight: 500; }
+.tool-best .shard img { width: 32px; height: 32px; }
+
+.tool-money {
+  margin-top: 4px;
+  font: 500 30px/1.1 var(--mono);
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.tool-money span { margin-left: 6px; font-size: 13px; color: var(--muted); letter-spacing: 0; }
+.tool-sub { color: var(--muted); font-size: 12.5px; }
+.tool-empty { margin: 0; color: var(--faint); }
+
+.tool-rest {
+  width: 100%;
+  margin: 10px 0 0;
+  padding: 10px 0 0 18px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.tool-rest li { padding: 2px 0; }
+.tool-rest li span:first-child { display: inline-block; min-width: 0; margin-right: 8px; }
+.tool-rest .mono { float: right; color: var(--text); }
+
+.tool-list { display: flex; gap: 6px; }
+
+.tool-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tool-tag i { font-size: 13px; }
+
+.thin-tag {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font: 500 11px/1.5 var(--mono);
+  white-space: nowrap;
+}
+
+.where { color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.where a { color: var(--faint); }
+
+.how { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.how li { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; }
+
 /* Skeleton loading rows */
 .skeleton td { padding: 14px; }
 .skeleton span {
@@ -674,7 +774,7 @@ select.field { padding-right: 8px; cursor: pointer; }
     animation: shimmer 1.4s linear infinite;
   }
   /* Entry motion only on first load, not on every refresh or filter change. */
-  .intro .pick, .intro .stats, .intro .row { animation: rise 0.5s var(--ease) both; }
+  .intro .pick, .intro .stats, .intro .tool-card, .intro .row { animation: rise 0.5s var(--ease) both; }
 }
 
 @keyframes shimmer { to { background-position: -200% 0; } }
@@ -725,8 +825,15 @@ select.field { padding-right: 8px; cursor: pointer; }
 .footer p { margin: 0; max-width: 90ch; }
 
 /* Responsive */
+/* Farming table: price and volume move to the detail view on mid-size screens. */
+@media (max-width: 1100px) {
+  .col-hide-md { display: none; }
+  .where { max-width: 160px; }
+  .result-cell { flex-wrap: wrap; row-gap: 2px; }
+}
+
 @media (max-width: 900px) {
-  .overview { grid-template-columns: 1fr; }
+  .overview, .tool-cards { grid-template-columns: 1fr; }
   .stats { grid-template-rows: none; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .stats .metric + .metric { border-top: 0; border-left: 1px solid var(--border); }
   .detail-inner { grid-template-columns: minmax(0, 1fr); padding-left: 14px; }
@@ -735,8 +842,10 @@ select.field { padding-right: 8px; cursor: pointer; }
 @media (max-width: 640px) {
   .wrap { padding: 0 16px; }
   .brand span, #status-text { display: none; }
-  .tabs { margin-left: 4px; }
-  .tabs a { padding: 0 10px; }
+  .tabs { margin-left: 2px; }
+  .tabs a { padding: 0 8px; }
+  .tab-full { display: none; }
+  .tab-short { display: inline; }
   .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 16px; gap: 14px 12px; }
   .controls > * { grid-column: 1 / -1; }
   .controls > .control-group.narrow { grid-column: auto; width: auto; }

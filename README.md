@@ -62,9 +62,35 @@ Not modelled: order-book depth beyond one fusion's worth of shards, and Hunting 
 - By default only real chains (2+ steps) are listed, since single fusions are on the main page. The buy/sell modes, tax, Crocodile level and the inflated-price warning are shared with the main page.
 - Chains use top-of-book prices (lowest offer or highest order) rather than walking the order book, because chain quantities vary by route.
 
+## Farming page
+
+`farming.html` (the "Farming" tab) ranks the shards worth hunting yourself and selling, in coins per hour, for each hunting tool:
+
+- **Huntaxe + Black Hole** for Combat mobs (e.g. Glacite Walker, Miner Zombie, Zealot)
+- **Lasso** for Forest mobs (e.g. Thyst, Bunbun, Phanpyre)
+- **Fishing Net** for Water mobs (e.g. Verdant, Coralot, Salmon)
+
+Each tool gets a card with its best shard and the runners-up; click one to filter the table. Every row shows the estimated catches per hour, where the mob spawns, the shard price and coins per hour, and the detail view explains how to catch it.
+
+How the estimate works: `coins/h = catches/h × your speed × (1 + Hunter Fortune / 100) × price × (1 − tax)`.
+
+- **Catches per hour** come from SkyShards' rates, which assume top gear in the best spot and often a group. They're best-case numbers, so use **Your speed** (100/75/50/25%) to scale them to your setup.
+- **Hunter Fortune** adds extra shards per catch; include pet and attribute bonuses in the number you enter.
+- A **Thin market** tag means one hour of farming is more than a tenth of what that shard trades in a day, so selling it all would likely drop the price.
+- The inflated-price warning works here too, and the tool cards skip flagged shards.
+
+The tool and location data lives in `data/farming.json`. Rebuild it when new shards are added:
+
+```bash
+node scripts/build-farming-data.mjs
+```
+
+It reads each shard's "Hunting" and "Huntraps" sections from the Hypixel SkyBlock Wiki (falling back to the mob's spawn location) and SkyShards' `rates.json`.
+
 ## Data sources
 
 - **Prices:** [Hypixel Bazaar API](https://api.hypixel.net/v2/skyblock/bazaar), no API key needed.
 - **Fusion recipes:** [SkyShards](https://github.com/Campionnn/SkyShards) `fusion-data.json` by Campion, MIT licensed. The app fetches the latest version on load and falls back to the snapshot in `data/fusion-data.json`. License text is in `data/SKYSHARDS_LICENSE`.
 - **7-day price history:** [Coflnet](https://sky.coflnet.com) `/api/bazaar/{item}/history/week`, no API key needed.
+- **Farming rates:** SkyShards `rates.json` (MIT). **Hunting tools and spawn locations:** [Hypixel SkyBlock Wiki](https://hypixelskyblock.minecraft.wiki/w/Hunting) (CC BY-NC-SA 3.0), extracted into `data/farming.json`.
 - **Shard icons:** loaded from the SkyShards repository.

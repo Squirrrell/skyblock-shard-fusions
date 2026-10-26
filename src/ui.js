@@ -53,6 +53,11 @@ const DEFAULTS = {
   chainSort: "profit",
   maxDepth: 3,
   includeSingles: false,
+  // Farming page
+  farmTool: "all",
+  farmSort: "moneyPerHour",
+  hunterFortune: 0,
+  efficiency: 1,
 };
 
 export const settings = (() => {
@@ -206,30 +211,33 @@ export function bindSharedControls({ onPricingChange, onFilterChange }) {
     });
   }
 
-  byId("tax-input").addEventListener("change", (e) => {
-    const value = Number(e.target.value);
+  // Not every page has every control, so missing ones are skipped.
+  const on = (id, handler) => byId(id)?.addEventListener("change", (e) => handler(e.target));
+
+  on("tax-input", (input) => {
+    const value = Number(input.value);
     settings.tax = Number.isFinite(value) && value >= 0 ? value : DEFAULTS.tax;
     onPricingChange();
   });
 
-  byId("croco-input").addEventListener("change", (e) => {
-    const value = Math.round(Number(e.target.value));
+  on("croco-input", (input) => {
+    const value = Math.round(Number(input.value));
     settings.crocodileLevel = Number.isFinite(value) ? Math.min(10, Math.max(0, value)) : 0;
     onPricingChange();
   });
 
-  byId("volume-input").addEventListener("change", (e) => {
-    settings.minVolume = Math.max(0, Number(e.target.value) || 0);
+  on("volume-input", (input) => {
+    settings.minVolume = Math.max(0, Number(input.value) || 0);
     onFilterChange();
   });
 
-  byId("price-check-select").addEventListener("change", (e) => {
-    settings.priceCheck = Number(e.target.value);
+  on("price-check-select", (input) => {
+    settings.priceCheck = Number(input.value);
     onFilterChange();
   });
 
-  byId("inflated-toggle").addEventListener("change", (e) => {
-    settings.hideInflated = e.target.checked;
+  on("inflated-toggle", (input) => {
+    settings.hideInflated = input.checked;
     onFilterChange();
   });
 
@@ -242,12 +250,16 @@ export function syncSharedControls() {
       button.setAttribute("aria-checked", String(button.dataset.value === settings[group.dataset.setting]));
     }
   }
-  byId("tax-input").value = settings.tax;
-  byId("croco-input").value = settings.crocodileLevel;
-  byId("volume-input").value = settings.minVolume || "";
-  byId("price-check-select").value = String(settings.priceCheck);
-  byId("inflated-toggle").checked = settings.hideInflated;
-  byId("inflated-toggle").disabled = !settings.priceCheck;
+  const set = (id, prop, value) => {
+    const input = byId(id);
+    if (input) input[prop] = value;
+  };
+  set("tax-input", "value", settings.tax);
+  set("croco-input", "value", settings.crocodileLevel);
+  set("volume-input", "value", settings.minVolume || "");
+  set("price-check-select", "value", String(settings.priceCheck));
+  set("inflated-toggle", "checked", settings.hideInflated);
+  set("inflated-toggle", "disabled", !settings.priceCheck);
   syncThemeIcon();
 }
 
