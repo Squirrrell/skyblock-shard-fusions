@@ -495,6 +495,43 @@ select.field { padding-right: 8px; cursor: pointer; }
 .gain { color: var(--accent); }
 .loss { color: var(--loss); }
 
+.inflated-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--loss-soft);
+  color: var(--loss);
+  font: 500 11px/1.5 var(--mono);
+}
+
+.inflated-tag i { font-size: 12px; }
+
+/* Profit that rests on a pumped price: still visible, but clearly not to be trusted. */
+.suspect {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--loss);
+}
+
+.pick-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -8px 0 14px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.pick-note i, .check i { color: var(--loss); }
+
+.detail p.check { color: var(--muted); }
+.detail p.check.is-inflated { color: var(--text); }
+
+.switch:has(input:disabled) { opacity: 0.5; cursor: not-allowed; }
+
 .reptile-tag {
   margin-left: 4px;
   padding: 1px 6px;
@@ -652,7 +689,7 @@ select.field { padding-right: 8px; cursor: pointer; }
   .col-hide-sm, .col-rank { display: none; }
   .fusion-cell { flex-direction: column; align-items: flex-start; gap: 4px; }
   .fusion-cell .plus, .fusions .rarity-letter { display: none; }
-  .result-cell .ph-arrow-right, .alt-count, .reptile-tag { display: none; }
+  .result-cell .ph-arrow-right, .alt-count, .reptile-tag, .inflated-tag span { display: none; }
   .fusions .shard img { width: 20px; height: 20px; }
   .fusions { font-size: 13px; }
   .fusions th, .fusions td { padding-left: 8px; padding-right: 8px; }

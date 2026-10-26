@@ -42,6 +42,10 @@ Price sources from the Bazaar order book (`/v2/skyblock/bazaar`):
 | Insta-sell | Highest buy order (top of `sell_summary`) |
 | Sell offer | Lowest sell offer (top of `buy_summary`) |
 
+**Inflated price warning:** each output's current price is compared with its 7-day median from Coflnet, on the same side of the book as the sell mode (insta-sell price or lowest sell offer). If it's above the median by the chosen threshold (15%, 25% by default, or 50%), the row gets a red "+X% vs 7d" tag, its profit is struck through, and the detail view shows what the fusion would make at the median price. You can hide flagged fusions entirely, and the "most profitable" card always skips them.
+
+A 7-day median was chosen over 3 days because someone would have to hold an inflated price for more than 3.5 days to move it, while a 1-2 day pump can drag a 3-day window along with it. Only outputs are checked: an inflated input price just makes a fusion look worse, never better. History is fetched only for the shards on screen (3 requests at a time, to respect Coflnet's rate limit) and cached in the browser for an hour.
+
 Bazaar tax defaults to 1.25% and can be changed in the toolbar. Weekly volume is shown so you can skip shards that barely trade.
 
 Not modelled: order-book depth beyond one fusion's worth of shards, and Hunting XP gained from fusing.
@@ -50,4 +54,5 @@ Not modelled: order-book depth beyond one fusion's worth of shards, and Hunting 
 
 - **Prices:** [Hypixel Bazaar API](https://api.hypixel.net/v2/skyblock/bazaar), no API key needed.
 - **Fusion recipes:** [SkyShards](https://github.com/Campionnn/SkyShards) `fusion-data.json` by Campion, MIT licensed. The app fetches the latest version on load and falls back to the snapshot in `data/fusion-data.json`. License text is in `data/SKYSHARDS_LICENSE`.
+- **7-day price history:** [Coflnet](https://sky.coflnet.com) `/api/bazaar/{item}/history/week`, no API key needed.
 - **Shard icons:** loaded from the SkyShards repository.

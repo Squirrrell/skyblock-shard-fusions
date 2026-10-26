@@ -1,5 +1,6 @@
 import { fetchBazaar } from "./bazaar.js";
 import { loadFusions, rankFusions, RARITIES } from "./fusions.js";
+import { getBaseline, pendingCount, requestBaselines } from "./history.js";
 
 const REFRESH_MS = 60_000;
 const PAGE_SIZE = 100;
@@ -20,6 +21,9 @@ const DEFAULTS = {
   rarities: [...RARITIES],
   sort: "profit",
   unique: true,
+  // Flag outputs priced this far above their 7-day median; 0 turns the check off.
+  priceCheck: 0.25,
+  hideInflated: false,
 };
 
 const settings = loadSettings();
@@ -51,6 +55,8 @@ const el = {
   rarityChips: $("rarity-chips"),
   sort: $("sort-select"),
   unique: $("unique-toggle"),
+  priceCheck: $("price-check-select"),
+  hideInflated: $("inflated-toggle"),
   error: $("error-banner"),
   errorText: $("error-text"),
   overview: $("overview"),
@@ -189,6 +195,7 @@ function visibleRows() {
       const names = `${shards[row.a].name} ${shards[row.b].name} ${shards[row.output].name}`.toLowerCase();
       if (!names.includes(query)) return false;
     }
+    if (settings.hideInflated && priceCheck(row).status === "inflated") return false;
     return true;
   });
 
@@ -200,13 +207,44 @@ function visibleRows() {
   return rows.filter((row) => !seen.has(row.output) && seen.add(row.output));
 }
 
+/**
+ * Compares the output's current price with its 7-day median, on the same side of the book
+ * the sell mode uses. A pumped output is what makes a fake flip look profitable; inputs
+ * priced high only shrink the profit, so they aren't checked.
+ */
+function priceCheck(row) {
+  if (!settings.priceCheck) return { status: "off" };
+  const baseline = getBaseline(state.fusions.shards[row.output].internal_id);
+  if (!baseline) return { status: "pending" };
+  const median = settings.sellMode === "instaSell" ? baseline.sell : baseline.buy;
+  if (!median) return { status: "unknown" };
+  const ratio = row.outputPrice / median;
+  return {
+    status: ratio >= 1 + settings.priceCheck ? "inflated" : "ok",
+    ratio,
+    median,
+    medianProfit: median * row.expectedQty * (1 - settings.tax / 100) - row.cost,
+  };
+}
+
 /* ---------- Rendering ---------- */
+
+let historyRenderTimer;
+// History arrives one product at a time; batch the re-renders it triggers.
+const renderSoon = () => {
+  clearTimeout(historyRenderTimer);
+  historyRenderTimer = setTimeout(render, 400);
+};
 
 function render() {
   if (!state.fusions || !state.bazaar) return;
   const rows = visibleRows();
+  const shown = rows.slice(0, state.limit);
+  if (settings.priceCheck) {
+    requestBaselines(new Set(shown.map((row) => state.fusions.shards[row.output].internal_id)), renderSoon);
+  }
   renderOverview(rows);
-  renderRows(rows);
+  renderRows(rows, shown);
   state.changes = new Map();
 }
 
@@ -226,7 +264,10 @@ function renderOverview(rows) {
     return;
   }
   const { shards } = state.fusions;
-  const best = rows.reduce((a, b) => (b.profit > a.profit ? b : a));
+  // Skip pumped outputs for the headline pick; fall back to the raw best if everything is flagged.
+  const trusted = rows.filter((row) => priceCheck(row).status !== "inflated");
+  const best = (trusted.length ? trusted : rows).reduce((a, b) => (b.profit > a.profit ? b : a));
+  const skipped = rows.filter((row) => row.profit > best.profit).length;
   const bestRoi = rows.reduce((a, b) => (b.roi > a.roi ? b : a));
   const totalPriced = state.ranked.length;
   const profitable = state.ranked.filter((r) => r.profit > 0).length;
@@ -234,6 +275,7 @@ function renderOverview(rows) {
   el.overview.innerHTML = `
     <article class="pick">
       <h2 class="pick-title">Most profitable fusion right now</h2>
+      ${skipped ? `<p class="pick-note"><i class="ph ph-warning" aria-hidden="true"></i>Skipped ${skipped} higher-profit fusion${skipped > 1 ? "s" : ""} with inflated output prices.</p>` : ""}
       <div class="pick-flow">
         ${shardHtml(best.a, best.amountA)}
         <i class="ph ph-plus op" aria-label="plus"></i>
@@ -255,7 +297,7 @@ function renderOverview(rows) {
     </aside>`;
 }
 
-function renderRows(rows) {
+function renderRows(rows, shown) {
   if (rows.length === 0) {
     const both = settings.buyMode === "instaBuy" && settings.sellMode === "instaSell";
     renderEmpty(
@@ -269,9 +311,11 @@ function renderRows(rows) {
     return;
   }
 
-  const shown = rows.slice(0, state.limit);
   el.rows.innerHTML = shown.map((row, i) => rowHtml(row, i + 1)).join("");
-  el.count.textContent = `Showing ${shown.length} of ${intFmt.format(rows.length)} profitable fusions`;
+  const checking = settings.priceCheck ? pendingCount() : 0;
+  el.count.textContent =
+    `Showing ${shown.length} of ${intFmt.format(rows.length)} profitable fusions` +
+    (checking ? `, checking 7-day prices for ${checking} shard${checking > 1 ? "s" : ""}` : "");
   el.more.hidden = rows.length <= state.limit;
 }
 
@@ -284,14 +328,19 @@ function rowHtml(row, rank) {
   const reptileTag = boosted
     ? `<span class="reptile-tag" title="Pure Reptile: expected ×${qtyText(row.expectedQty)} output at Crocodile ${settings.crocodileLevel}">Reptile</span>`
     : "";
+  const check = priceCheck(row);
+  const inflated = check.status === "inflated";
+  const inflatedTag = inflated
+    ? `<span class="inflated-tag" title="Output price is ${pct(check.ratio - 1)} above its 7-day median of ${coins(check.median)}. It may be artificially inflated."><i class="ph ph-warning" aria-hidden="true"></i><span>+${Math.round((check.ratio - 1) * 100)}% vs 7d</span></span>`
+    : "";
   return `
     <tr class="row" tabindex="0" data-key="${row.key}" aria-expanded="${open}" style="animation-delay:${Math.min(rank, 20) * 15}ms">
       <td class="col-rank num">${rank}</td>
       <td><div class="fusion-cell">${shardHtml(row.a, row.amountA)}<span class="plus">+</span>${shardHtml(row.b, row.amountB)}</div></td>
-      <td><div class="result-cell"><i class="ph ph-arrow-right" aria-hidden="true"></i>${shardHtml(row.output, row.outputQty)}${reptileTag}${alts ? `<span class="alt-count" title="${alts} other output option${alts > 1 ? "s" : ""}">+${alts}</span>` : ""}</div></td>
+      <td><div class="result-cell"><i class="ph ph-arrow-right" aria-hidden="true"></i>${shardHtml(row.output, row.outputQty)}${inflatedTag}${reptileTag}${alts ? `<span class="alt-count" title="${alts} other output option${alts > 1 ? "s" : ""}">+${alts}</span>` : ""}</div></td>
       <td class="num col-hide-sm">${coins(row.cost)}</td>
       <td class="num col-hide-sm">${coins(row.revenue)}</td>
-      <td class="num gain${flash}">${signed(row.profit)}</td>
+      <td class="num ${inflated ? "suspect" : "gain"}${flash}"${inflated ? ' title="Unreliable: output price looks inflated"' : ""}>${signed(row.profit)}</td>
       <td class="num">${pct(row.roi)}</td>
       <td class="num col-hide-sm">${compactFmt.format(row.volume)}</td>
     </tr>
@@ -344,6 +393,7 @@ function detailHtml(row) {
               ? ` This is a reptile fusion, so output is the average with a ${settings.crocodileLevel * 2}% Pure Reptile chance to double: profit is an expected value over many fusions.`
               : ""
           }</p>
+          ${priceCheckHtml(row)}
         </div>
         <div>
           <h3>Other outputs from this pair</h3>
@@ -351,6 +401,28 @@ function detailHtml(row) {
         </div>
       </div>
     </td></tr>`;
+}
+
+function priceCheckHtml(row) {
+  const check = priceCheck(row);
+  const name = esc(state.fusions.shards[row.output].name);
+  const side = settings.sellMode === "instaSell" ? "insta-sell" : "lowest offer";
+  switch (check.status) {
+    case "off":
+      return "";
+    case "pending":
+      return `<p class="check">Checking the 7-day price history of ${name}.</p>`;
+    case "unknown":
+      return `<p class="check">Not enough 7-day price history for ${name} to check for inflation.</p>`;
+    default: {
+      const diff = check.ratio - 1;
+      return `<p class="check${check.status === "inflated" ? " is-inflated" : ""}">
+        ${check.status === "inflated" ? '<i class="ph ph-warning" aria-hidden="true"></i>' : ""}
+        The ${side} price of ${name} is ${pct(Math.abs(diff))} ${diff >= 0 ? "above" : "below"} its 7-day median of ${coins(check.median)}.
+        At the median this fusion would make <strong class="${check.medianProfit >= 0 ? "gain" : "loss"}">${signed(check.medianProfit)}</strong>.
+      </p>`;
+    }
+  }
 }
 
 function renderSkeleton() {
@@ -441,6 +513,16 @@ function bindControls() {
     onFilterChange();
   });
 
+  el.priceCheck.addEventListener("change", () => {
+    settings.priceCheck = Number(el.priceCheck.value);
+    onFilterChange();
+  });
+
+  el.hideInflated.addEventListener("change", () => {
+    settings.hideInflated = el.hideInflated.checked;
+    onFilterChange();
+  });
+
   el.more.addEventListener("click", () => {
     state.limit += PAGE_SIZE;
     render();
@@ -498,6 +580,9 @@ function syncControls() {
   el.budget.value = settings.maxCost ?? "";
   el.sort.value = settings.sort;
   el.unique.checked = settings.unique;
+  el.priceCheck.value = String(settings.priceCheck);
+  el.hideInflated.checked = settings.hideInflated;
+  el.hideInflated.disabled = !settings.priceCheck;
   syncThemeIcon();
 }
 

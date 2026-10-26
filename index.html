@@ -93,6 +93,20 @@
         <span class="switch-track" aria-hidden="true"></span>
         <span>Best recipe per output only</span>
       </label>
+      <div class="control-group">
+        <label class="label" for="price-check-select" title="Compares the output's current price with its 7-day median from Coflnet">Warn when output is above 7-day median by</label>
+        <select class="field" id="price-check-select">
+          <option value="0.15">15% or more</option>
+          <option value="0.25">25% or more</option>
+          <option value="0.5">50% or more</option>
+          <option value="0">Off</option>
+        </select>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="inflated-toggle">
+        <span class="switch-track" aria-hidden="true"></span>
+        <span>Hide inflated fusions</span>
+      </label>
     </section>
 
     <div class="banner" id="error-banner" role="alert" hidden>
@@ -128,7 +142,7 @@
   </main>
 
   <footer class="wrap footer">
-    <p>Prices from the Hypixel Bazaar API, refreshed every 60 seconds. Fusion recipes from <a href="https://github.com/Campionnn/SkyShards">SkyShards</a> (<span id="data-source">loading</span>). Profit assumes you pick the most valuable output. With a Crocodile level set, reptile fusions use the average output from Pure Reptile doubling.</p>
+    <p>Prices from the Hypixel Bazaar API, refreshed every 60 seconds. Fusion recipes from <a href="https://github.com/Campionnn/SkyShards">SkyShards</a> (<span id="data-source">loading</span>). 7-day price history from <a href="https://sky.coflnet.com">Coflnet</a>. Profit assumes you pick the most valuable output. With a Crocodile level set, reptile fusions use the average output from Pure Reptile doubling.</p>
   </footer>
 </body>
 </html>
