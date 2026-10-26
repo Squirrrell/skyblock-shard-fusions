@@ -52,9 +52,13 @@
           <button type="button" role="radio" data-value="sellOffer">Sell offer</button>
         </div>
       </div>
-      <div class="control-group narrow tax">
+      <div class="control-group narrow">
         <label class="label" for="tax-input">Bazaar tax %</label>
         <input class="field" id="tax-input" type="number" min="0" max="10" step="0.125" inputmode="decimal">
+      </div>
+      <div class="control-group narrow">
+        <label class="label" for="croco-input" title="Pure Reptile: 2% chance per level to double the output of fusions with a Reptile input">Crocodile level</label>
+        <input class="field" id="croco-input" type="number" min="0" max="10" step="1" inputmode="numeric">
       </div>
 
       <div class="control-group grow">
@@ -124,7 +128,7 @@
   </main>
 
   <footer class="wrap footer">
-    <p>Prices from the Hypixel Bazaar API, refreshed every 60 seconds. Fusion recipes from <a href="https://github.com/Campionnn/SkyShards">SkyShards</a> (<span id="data-source">loading</span>). Profit assumes you pick the most valuable output and ignores Pure Reptile doubling.</p>
+    <p>Prices from the Hypixel Bazaar API, refreshed every 60 seconds. Fusion recipes from <a href="https://github.com/Campionnn/SkyShards">SkyShards</a> (<span id="data-source">loading</span>). Profit assumes you pick the most valuable output. With a Crocodile level set, reptile fusions use the average output from Pure Reptile doubling.</p>
   </footer>
 </body>
 </html>

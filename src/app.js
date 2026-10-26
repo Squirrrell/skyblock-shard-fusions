@@ -14,6 +14,7 @@ const DEFAULTS = {
   buyMode: "instaBuy",
   sellMode: "instaSell",
   tax: 1.25,
+  crocodileLevel: 0,
   minVolume: 0,
   maxCost: null,
   rarities: [...RARITIES],
@@ -43,6 +44,7 @@ const el = {
   refresh: $("refresh-btn"),
   theme: $("theme-btn"),
   tax: $("tax-input"),
+  croco: $("croco-input"),
   search: $("search-input"),
   volume: $("volume-input"),
   budget: $("budget-input"),
@@ -67,6 +69,7 @@ const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2
 const coins = (n) => intFmt.format(Math.round(n));
 const signed = (n) => (n > 0 ? "+" : n < 0 ? "-" : "") + coins(Math.abs(n));
 const pct = (r) => `${(r * 100).toFixed(1)}%`;
+const qtyText = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 /* ---------- Settings ---------- */
@@ -149,6 +152,7 @@ function recompute() {
     buyMode: settings.buyMode,
     sellMode: settings.sellMode,
     tax: settings.tax / 100,
+    crocodileLevel: settings.crocodileLevel,
   });
 }
 
@@ -276,11 +280,15 @@ function rowHtml(row, rank) {
   const change = state.changes.get(row.key);
   const flash = change ? ` flash-${change}` : "";
   const alts = row.alternatives.length;
+  const boosted = row.isReptile && settings.crocodileLevel > 0;
+  const reptileTag = boosted
+    ? `<span class="reptile-tag" title="Pure Reptile: expected ×${qtyText(row.expectedQty)} output at Crocodile ${settings.crocodileLevel}">Reptile</span>`
+    : "";
   return `
     <tr class="row" tabindex="0" data-key="${row.key}" aria-expanded="${open}" style="animation-delay:${Math.min(rank, 20) * 15}ms">
       <td class="col-rank num">${rank}</td>
       <td><div class="fusion-cell">${shardHtml(row.a, row.amountA)}<span class="plus">+</span>${shardHtml(row.b, row.amountB)}</div></td>
-      <td><div class="result-cell"><i class="ph ph-arrow-right" aria-hidden="true"></i>${shardHtml(row.output, row.outputQty)}${alts ? `<span class="alt-count" title="${alts} other output option${alts > 1 ? "s" : ""}">+${alts}</span>` : ""}</div></td>
+      <td><div class="result-cell"><i class="ph ph-arrow-right" aria-hidden="true"></i>${shardHtml(row.output, row.outputQty)}${reptileTag}${alts ? `<span class="alt-count" title="${alts} other output option${alts > 1 ? "s" : ""}">+${alts}</span>` : ""}</div></td>
       <td class="num col-hide-sm">${coins(row.cost)}</td>
       <td class="num col-hide-sm">${coins(row.revenue)}</td>
       <td class="num gain${flash}">${signed(row.profit)}</td>
@@ -312,7 +320,7 @@ function detailHtml(row) {
         <thead><tr><th>Output</th><th class="num">Qty</th><th class="num">Revenue</th><th class="num">Profit</th></tr></thead>
         <tbody>${row.alternatives
           .map(
-            (alt) => `<tr><td>${shardHtml(alt.id)}</td><td class="num">${alt.qty}</td><td class="num">${coins(alt.revenue)}</td><td class="num ${alt.profit >= 0 ? "gain" : "loss"}">${signed(alt.profit)}</td></tr>`,
+            (alt) => `<tr><td>${shardHtml(alt.id)}</td><td class="num">${qtyText(alt.expectedQty)}</td><td class="num">${coins(alt.revenue)}</td><td class="num ${alt.profit >= 0 ? "gain" : "loss"}">${signed(alt.profit)}</td></tr>`,
           )
           .join("")}</tbody>
       </table></div>`
@@ -328,10 +336,14 @@ function detailHtml(row) {
             <tbody>
               ${item(row.a, row.amountA, row.priceA, sameInput ? "Inputs" : "Input 1")}
               ${sameInput ? "" : item(row.b, row.amountB, row.priceB, "Input 2")}
-              ${item(row.output, row.outputQty, row.outputPrice, "Output")}
+              ${item(row.output, qtyText(row.expectedQty), row.outputPrice, "Output")}
             </tbody>
           </table></div>
-          <p>Insta-buy and insta-sell prices are averaged across the order book for the full stack, so they can differ from the top offer or order. Revenue is after ${settings.tax}% Bazaar tax.</p>
+          <p>Insta-buy and insta-sell prices are averaged across the order book for the full stack, so they can differ from the top offer or order. Revenue is after ${settings.tax}% Bazaar tax.${
+            row.isReptile && settings.crocodileLevel > 0
+              ? ` This is a reptile fusion, so output is the average with a ${settings.crocodileLevel * 2}% Pure Reptile chance to double: profit is an expected value over many fusions.`
+              : ""
+          }</p>
         </div>
         <div>
           <h3>Other outputs from this pair</h3>
@@ -389,6 +401,12 @@ function bindControls() {
   el.tax.addEventListener("change", () => {
     const value = Number(el.tax.value);
     settings.tax = Number.isFinite(value) && value >= 0 ? value : DEFAULTS.tax;
+    onPricingChange();
+  });
+
+  el.croco.addEventListener("change", () => {
+    const value = Math.round(Number(el.croco.value));
+    settings.crocodileLevel = Number.isFinite(value) ? Math.min(10, Math.max(0, value)) : 0;
     onPricingChange();
   });
 
@@ -475,6 +493,7 @@ function syncControls() {
     chip.setAttribute("aria-pressed", String(settings.rarities.includes(chip.dataset.rarity)));
   }
   el.tax.value = settings.tax;
+  el.croco.value = settings.crocodileLevel;
   el.volume.value = settings.minVolume || "";
   el.budget.value = settings.maxCost ?? "";
   el.sort.value = settings.sort;

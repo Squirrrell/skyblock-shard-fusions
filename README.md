@@ -31,6 +31,8 @@ For every fusion pair `A + B`:
   - Special fusions give 2 of the output, the rest give 1.
 - **Profit** = Revenue − Cost
 
+**Crocodile / Pure Reptile:** set your Crocodile attribute level (0-10) in the toolbar. Each level gives a 2% chance to double the output of a fusion with a Reptile-family input, so those fusions use the average output `outputQty × (1 + 0.02 × level)`. Their profit is then an expected value over many fusions, and the rows get a "Reptile" tag.
+
 Price sources from the Bazaar order book (`/v2/skyblock/bazaar`):
 
 | Mode | Price used |
@@ -42,7 +44,7 @@ Price sources from the Bazaar order book (`/v2/skyblock/bazaar`):
 
 Bazaar tax defaults to 1.25% and can be changed in the toolbar. Weekly volume is shown so you can skip shards that barely trade.
 
-Not modelled: the Pure Reptile / Crocodile chance to double reptile outputs, order-book depth when buying in bulk, and Hunting XP gained from fusing.
+Not modelled: order-book depth beyond one fusion's worth of shards, and Hunting XP gained from fusing.
 
 ## Data sources
 

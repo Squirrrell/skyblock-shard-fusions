@@ -30,7 +30,9 @@ export async function loadFusions() {
         const key = `${a}|${b}`;
         let pair = byPair.get(key);
         if (!pair) {
-          pair = { a, b, outputs: [] };
+          // Pure Reptile (Crocodile) can double the output when either input is a Reptile.
+          const isReptile = isReptileShard(data.shards[a]) || isReptileShard(data.shards[b]);
+          pair = { a, b, isReptile, outputs: [] };
           byPair.set(key, pair);
         }
         pair.outputs.push({ id: outputId, qty: Number(qty) });
@@ -40,6 +42,12 @@ export async function loadFusions() {
 
   return { shards: data.shards, pairs: [...byPair.values()], source };
 }
+
+// Families look like "Reptile and Croco Family"; Chameleon is plain "Reptile Family".
+const isReptileShard = (shard) => shard.family.includes("Reptile");
+
+/** Average output multiplier from Pure Reptile: each Crocodile level adds a 2% chance to double. */
+export const crocodileMultiplier = (level) => 1 + 0.02 * level;
 
 async function fetchJson(url) {
   const res = await fetch(url);
@@ -51,14 +59,17 @@ async function fetchJson(url) {
  * Prices every fusion pair and returns one row per pair, using its most valuable output.
  * Pairs with an input or every output missing from the Bazaar are dropped.
  *
- * @param {{buyMode: "instaBuy"|"buyOrder", sellMode: "instaSell"|"sellOffer", tax: number}} opts
- *   `tax` is a fraction, e.g. 0.0125.
+ * @param {{buyMode: "instaBuy"|"buyOrder", sellMode: "instaSell"|"sellOffer", tax: number, crocodileLevel: number}} opts
+ *   `tax` is a fraction, e.g. 0.0125. `crocodileLevel` is 0-10; reptile pairs then use the
+ *   average output, so their profit is an expected value rather than a guaranteed one.
  */
-export function rankFusions({ shards, pairs }, products, { buyMode, sellMode, tax }) {
+export function rankFusions({ shards, pairs }, products, { buyMode, sellMode, tax, crocodileLevel = 0 }) {
   const productOf = (id) => products.get(shards[id].internal_id);
+  const reptileMultiplier = crocodileMultiplier(crocodileLevel);
   const rows = [];
 
-  for (const { a, b, outputs } of pairs) {
+  for (const { a, b, isReptile, outputs } of pairs) {
+    const multiplier = isReptile ? reptileMultiplier : 1;
     const amountA = shards[a].fuse_amount;
     const amountB = shards[b].fuse_amount;
     // Same shard twice (e.g. Treefrog + Treefrog) means buying both stacks at once.
@@ -69,10 +80,12 @@ export function rankFusions({ shards, pairs }, products, { buyMode, sellMode, ta
 
     const options = [];
     for (const { id, qty } of outputs) {
-      const unit = sellPrice(productOf(id), sellMode, qty);
+      const expectedQty = qty * multiplier;
+      // Round up so an insta-sell fill price covers the extra shards from Pure Reptile.
+      const unit = sellPrice(productOf(id), sellMode, Math.ceil(expectedQty));
       if (unit == null) continue;
-      const revenue = unit * qty * (1 - tax);
-      options.push({ id, qty, unit, revenue, profit: revenue - cost });
+      const revenue = unit * expectedQty * (1 - tax);
+      options.push({ id, qty, expectedQty, unit, revenue, profit: revenue - cost });
     }
     if (options.length === 0) continue;
     options.sort((x, y) => y.profit - x.profit);
@@ -89,6 +102,8 @@ export function rankFusions({ shards, pairs }, products, { buyMode, sellMode, ta
       cost,
       output: best.id,
       outputQty: best.qty,
+      expectedQty: best.expectedQty,
+      isReptile,
       outputPrice: best.unit,
       revenue: best.revenue,
       profit: best.profit,
