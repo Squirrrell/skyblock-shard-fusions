@@ -1,32 +1,36 @@
-import { fetchBazaar } from "./bazaar.js";
+// Single-fusion page: ranks every A + B fusion pair by profit.
 import { loadFusions, rankFusions, RARITIES } from "./fusions.js";
-import { getBaseline, pendingCount, requestBaselines } from "./history.js";
+import { pendingCount, requestBaselines } from "./history.js";
+import {
+  PAGE_SIZE,
+  bindRowToggle,
+  bindSharedControls,
+  coins,
+  compactFmt,
+  esc,
+  historyUrl,
+  inflatedTagHtml,
+  intFmt,
+  pct,
+  priceCheck,
+  priceCheckHtml,
+  qtyText,
+  renderEmpty,
+  renderSkeleton,
+  saveSettings,
+  settings,
+  shardHtml as sharedShardHtml,
+  showError,
+  signed,
+  startPriceLoop,
+  syncSharedControls,
+  timeFmt,
+  wikiUrl,
+} from "./ui.js";
 
-const REFRESH_MS = 60_000;
-const PAGE_SIZE = 100;
-const SETTINGS_KEY = "sff-settings";
-const THEME_KEY = "sff-theme";
-
-const iconUrl = (id) => `https://raw.githubusercontent.com/Campionnn/SkyShards/master/public/shardIcons/${id}.png`;
-const wikiUrl = (name) => `https://hypixelskyblock.minecraft.wiki/w/${encodeURIComponent(name.replaceAll(" ", "_"))}_Shard`;
-const historyUrl = (productId) => `https://sky.coflnet.com/item/${productId}`;
-
-const DEFAULTS = {
-  buyMode: "instaBuy",
-  sellMode: "instaSell",
-  tax: 1.25,
-  crocodileLevel: 0,
-  minVolume: 0,
-  maxCost: null,
-  rarities: [...RARITIES],
-  sort: "profit",
-  unique: true,
-  // Flag outputs priced this far above their 7-day median; 0 turns the check off.
-  priceCheck: 0.25,
-  hideInflated: false,
-};
-
-const settings = loadSettings();
+const COLUMNS = 8;
+// Cost, revenue and weekly volume are hidden on phones.
+const HIDDEN_ON_PHONE = [3, 4, 7];
 
 const state = {
   fusions: null,
@@ -38,27 +42,15 @@ const state = {
   search: "",
   limit: PAGE_SIZE,
   expanded: new Set(),
-  lastFetch: 0,
-  loading: false,
 };
 
 const $ = (id) => document.getElementById(id);
 const el = {
-  status: $("status-text"),
-  refresh: $("refresh-btn"),
-  theme: $("theme-btn"),
-  tax: $("tax-input"),
-  croco: $("croco-input"),
   search: $("search-input"),
-  volume: $("volume-input"),
   budget: $("budget-input"),
   rarityChips: $("rarity-chips"),
   sort: $("sort-select"),
   unique: $("unique-toggle"),
-  priceCheck: $("price-check-select"),
-  hideInflated: $("inflated-toggle"),
-  error: $("error-banner"),
-  errorText: $("error-text"),
   overview: $("overview"),
   rows: $("rows"),
   count: $("count-text"),
@@ -66,68 +58,20 @@ const el = {
   dataSource: $("data-source"),
 };
 
-/* ---------- Formatting ---------- */
-
-const intFmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-const compactFmt = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 });
-const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-
-const coins = (n) => intFmt.format(Math.round(n));
-const signed = (n) => (n > 0 ? "+" : n < 0 ? "-" : "") + coins(Math.abs(n));
-const pct = (r) => `${(r * 100).toFixed(1)}%`;
-const qtyText = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0$/, ""));
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-
-/* ---------- Settings ---------- */
-
-function loadSettings() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-    return { ...DEFAULTS, ...saved };
-  } catch {
-    return { ...DEFAULTS };
-  }
-}
-
-function saveSettings() {
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  } catch {
-    // Storage can be unavailable (private mode); settings just won't persist.
-  }
-}
+const shardHtml = (id, qty) => sharedShardHtml(state.fusions.shards, id, qty);
+const check = (row) => priceCheck(state.fusions.shards, row);
 
 /* ---------- Data ---------- */
 
 async function init() {
   bindControls();
   syncControls();
-  renderSkeleton();
+  renderSkeleton(el.rows, [18, 62, 44, 30, 30, 30, 22, 26], HIDDEN_ON_PHONE);
 
-  try {
-    const [fusions] = await Promise.all([loadFusions(), refreshPrices({ render: false })]);
-    state.fusions = fusions;
-    el.dataSource.textContent = fusions.source === "live" ? "latest data" : "offline snapshot";
-    recompute();
-    document.body.classList.add("intro");
-    render();
-    setTimeout(() => document.body.classList.remove("intro"), 1200);
-  } catch (err) {
-    showError(`Could not load fusion recipes: ${err.message}`);
-  }
-
-  setInterval(tick, 1000);
-  document.addEventListener("visibilitychange", tick);
-}
-
-async function refreshPrices({ render: shouldRender = true } = {}) {
-  if (state.loading) return;
-  state.loading = true;
-  el.refresh.classList.add("spinning");
-  try {
-    state.bazaar = await fetchBazaar();
-    hideError();
-    if (state.fusions) {
+  const prices = startPriceLoop({
+    onPrices: (bazaar) => {
+      state.bazaar = bazaar;
+      if (!state.fusions) return;
       const before = new Map(state.ranked.map((row) => [row.key, row.profit]));
       recompute();
       state.changes = new Map();
@@ -137,18 +81,21 @@ async function refreshPrices({ render: shouldRender = true } = {}) {
           state.changes.set(row.key, row.profit > prev ? "up" : "down");
         }
       }
-      if (shouldRender) render();
-    }
+      render();
+    },
+    onFirstFailure: () => renderEmpty(el.rows, COLUMNS, "Waiting for Bazaar prices", "The table fills in as soon as the Bazaar API responds."),
+  });
+
+  try {
+    state.fusions = await loadFusions();
+    await prices.ready;
+    el.dataSource.textContent = state.fusions.source === "live" ? "latest data" : "offline snapshot";
+    recompute();
+    document.body.classList.add("intro");
+    render();
+    setTimeout(() => document.body.classList.remove("intro"), 1200);
   } catch (err) {
-    const stale = state.bazaar ? " Showing the last prices that loaded." : "";
-    showError(`Bazaar prices failed to load (${err.message}).${stale} Retrying automatically.`);
-    if (!state.bazaar) renderEmpty("Waiting for Bazaar prices", "The table fills in as soon as the Bazaar API responds.");
-  } finally {
-    // Count failures as attempts too, so a down API is retried once per interval, not every second.
-    state.lastFetch = Date.now();
-    state.loading = false;
-    el.refresh.classList.remove("spinning");
-    updateStatus();
+    showError(`Could not load fusion recipes: ${err.message}`);
   }
 }
 
@@ -160,23 +107,6 @@ function recompute() {
     tax: settings.tax / 100,
     crocodileLevel: settings.crocodileLevel,
   });
-}
-
-function tick() {
-  if (document.visibilityState === "visible" && Date.now() - state.lastFetch >= REFRESH_MS) {
-    refreshPrices();
-  }
-  updateStatus();
-}
-
-function updateStatus() {
-  if (!state.bazaar) {
-    el.status.textContent = state.loading ? "Loading prices" : "Prices unavailable";
-    return;
-  }
-  const age = Math.max(0, Math.round((Date.now() - state.bazaar.lastUpdated) / 1000));
-  const next = Math.max(0, Math.ceil((REFRESH_MS - (Date.now() - state.lastFetch)) / 1000));
-  el.status.textContent = state.loading ? "Refreshing" : `Prices ${age}s old, refresh in ${next}s`;
 }
 
 /* ---------- Filtering ---------- */
@@ -195,7 +125,7 @@ function visibleRows() {
       const names = `${shards[row.a].name} ${shards[row.b].name} ${shards[row.output].name}`.toLowerCase();
       if (!names.includes(query)) return false;
     }
-    if (settings.hideInflated && priceCheck(row).status === "inflated") return false;
+    if (settings.hideInflated && check(row).status === "inflated") return false;
     return true;
   });
 
@@ -205,26 +135,6 @@ function visibleRows() {
   if (!settings.unique) return rows;
   const seen = new Set();
   return rows.filter((row) => !seen.has(row.output) && seen.add(row.output));
-}
-
-/**
- * Compares the output's current price with its 7-day median, on the same side of the book
- * the sell mode uses. A pumped output is what makes a fake flip look profitable; inputs
- * priced high only shrink the profit, so they aren't checked.
- */
-function priceCheck(row) {
-  if (!settings.priceCheck) return { status: "off" };
-  const baseline = getBaseline(state.fusions.shards[row.output].internal_id);
-  if (!baseline) return { status: "pending" };
-  const median = settings.sellMode === "instaSell" ? baseline.sell : baseline.buy;
-  if (!median) return { status: "unknown" };
-  const ratio = row.outputPrice / median;
-  return {
-    status: ratio >= 1 + settings.priceCheck ? "inflated" : "ok",
-    ratio,
-    median,
-    medianProfit: median * row.expectedQty * (1 - settings.tax / 100) - row.cost,
-  };
 }
 
 /* ---------- Rendering ---------- */
@@ -248,16 +158,6 @@ function render() {
   state.changes = new Map();
 }
 
-function shardHtml(id, qty) {
-  const shard = state.fusions.shards[id];
-  const r = shard.rarity;
-  return `<span class="shard" data-rarity="${r}">
-    <img src="${iconUrl(id)}" alt="" width="24" height="24" loading="lazy" onerror="this.style.visibility='hidden'">
-    <span class="rarity-letter" title="${r[0].toUpperCase() + r.slice(1)}">${r[0].toUpperCase()}</span>
-    <span>${esc(shard.name)}</span>${qty ? `<span class="qty">×${qty}</span>` : ""}
-  </span>`;
-}
-
 function renderOverview(rows) {
   if (rows.length === 0) {
     el.overview.innerHTML = "";
@@ -265,7 +165,7 @@ function renderOverview(rows) {
   }
   const { shards } = state.fusions;
   // Skip pumped outputs for the headline pick; fall back to the raw best if everything is flagged.
-  const trusted = rows.filter((row) => priceCheck(row).status !== "inflated");
+  const trusted = rows.filter((row) => check(row).status !== "inflated");
   const best = (trusted.length ? trusted : rows).reduce((a, b) => (b.profit > a.profit ? b : a));
   const skipped = rows.filter((row) => row.profit > best.profit).length;
   const bestRoi = rows.reduce((a, b) => (b.roi > a.roi ? b : a));
@@ -301,6 +201,8 @@ function renderRows(rows, shown) {
   if (rows.length === 0) {
     const both = settings.buyMode === "instaBuy" && settings.sellMode === "instaSell";
     renderEmpty(
+      el.rows,
+      COLUMNS,
       "No profitable fusions match",
       both
         ? "Insta-buying and insta-selling leaves thin margins. Try buy orders or sell offers, or loosen the filters."
@@ -328,16 +230,13 @@ function rowHtml(row, rank) {
   const reptileTag = boosted
     ? `<span class="reptile-tag" title="Pure Reptile: expected ×${qtyText(row.expectedQty)} output at Crocodile ${settings.crocodileLevel}">Reptile</span>`
     : "";
-  const check = priceCheck(row);
-  const inflated = check.status === "inflated";
-  const inflatedTag = inflated
-    ? `<span class="inflated-tag" title="Output price is ${pct(check.ratio - 1)} above its 7-day median of ${coins(check.median)}. It may be artificially inflated."><i class="ph ph-warning" aria-hidden="true"></i><span>+${Math.round((check.ratio - 1) * 100)}% vs 7d</span></span>`
-    : "";
+  const priceStatus = check(row);
+  const inflated = priceStatus.status === "inflated";
   return `
     <tr class="row" tabindex="0" data-key="${row.key}" aria-expanded="${open}" style="animation-delay:${Math.min(rank, 20) * 15}ms">
       <td class="col-rank num">${rank}</td>
       <td><div class="fusion-cell">${shardHtml(row.a, row.amountA)}<span class="plus">+</span>${shardHtml(row.b, row.amountB)}</div></td>
-      <td><div class="result-cell"><i class="ph ph-arrow-right" aria-hidden="true"></i>${shardHtml(row.output, row.outputQty)}${inflatedTag}${reptileTag}${alts ? `<span class="alt-count" title="${alts} other output option${alts > 1 ? "s" : ""}">+${alts}</span>` : ""}</div></td>
+      <td><div class="result-cell"><i class="ph ph-arrow-right" aria-hidden="true"></i>${shardHtml(row.output, row.outputQty)}${inflatedTagHtml(priceStatus)}${reptileTag}${alts ? `<span class="alt-count" title="${alts} other output option${alts > 1 ? "s" : ""}">+${alts}</span>` : ""}</div></td>
       <td class="num col-hide-sm">${coins(row.cost)}</td>
       <td class="num col-hide-sm">${coins(row.revenue)}</td>
       <td class="num ${inflated ? "suspect" : "gain"}${flash}"${inflated ? ' title="Unreliable: output price looks inflated"' : ""}>${signed(row.profit)}</td>
@@ -376,7 +275,7 @@ function detailHtml(row) {
     : `<p>This pair only offers one output.</p>`;
 
   return `
-    <tr class="detail"><td colspan="8">
+    <tr class="detail"><td colspan="${COLUMNS}">
       <div class="detail-inner">
         <div>
           <h3>Prices used</h3>
@@ -393,7 +292,7 @@ function detailHtml(row) {
               ? ` This is a reptile fusion, so output is the average with a ${settings.crocodileLevel * 2}% Pure Reptile chance to double: profit is an expected value over many fusions.`
               : ""
           }</p>
-          ${priceCheckHtml(row)}
+          ${priceCheckHtml(shards, row)}
         </div>
         <div>
           <h3>Other outputs from this pair</h3>
@@ -403,60 +302,10 @@ function detailHtml(row) {
     </td></tr>`;
 }
 
-function priceCheckHtml(row) {
-  const check = priceCheck(row);
-  const name = esc(state.fusions.shards[row.output].name);
-  const side = settings.sellMode === "instaSell" ? "insta-sell" : "lowest offer";
-  switch (check.status) {
-    case "off":
-      return "";
-    case "pending":
-      return `<p class="check">Checking the 7-day price history of ${name}.</p>`;
-    case "unknown":
-      return `<p class="check">Not enough 7-day price history for ${name} to check for inflation.</p>`;
-    default: {
-      const diff = check.ratio - 1;
-      return `<p class="check${check.status === "inflated" ? " is-inflated" : ""}">
-        ${check.status === "inflated" ? '<i class="ph ph-warning" aria-hidden="true"></i>' : ""}
-        The ${side} price of ${name} is ${pct(Math.abs(diff))} ${diff >= 0 ? "above" : "below"} its 7-day median of ${coins(check.median)}.
-        At the median this fusion would make <strong class="${check.medianProfit >= 0 ? "gain" : "loss"}">${signed(check.medianProfit)}</strong>.
-      </p>`;
-    }
-  }
-}
-
-function renderSkeleton() {
-  const widths = [18, 62, 44, 30, 30, 30, 22, 26];
-  el.rows.innerHTML = Array.from(
-    { length: 10 },
-    () => `<tr class="skeleton">${widths.map((w, i) => `<td class="${i === 3 || i === 4 || i === 7 ? "col-hide-sm" : ""}"><span style="width:${w + Math.random() * 30}%"></span></td>`).join("")}</tr>`,
-  ).join("");
-}
-
-function renderEmpty(title, body) {
-  el.rows.innerHTML = `<tr class="empty"><td colspan="8"><strong>${esc(title)}</strong>${esc(body)}</td></tr>`;
-}
-
-function showError(message) {
-  el.errorText.textContent = message;
-  el.error.hidden = false;
-}
-
-function hideError() {
-  el.error.hidden = true;
-}
-
 /* ---------- Controls ---------- */
 
 function bindControls() {
-  for (const group of document.querySelectorAll(".segmented")) {
-    group.addEventListener("click", (e) => {
-      const button = e.target.closest("button");
-      if (!button) return;
-      settings[group.dataset.setting] = button.dataset.value;
-      onPricingChange();
-    });
-  }
+  bindSharedControls({ onPricingChange, onFilterChange });
 
   el.rarityChips.innerHTML = RARITIES.map(
     (r) => `<button type="button" class="chip" data-rarity="${r}" aria-pressed="false"><span class="rarity-letter">${r[0].toUpperCase()}</span>${r[0].toUpperCase() + r.slice(1)}</button>`,
@@ -470,18 +319,6 @@ function bindControls() {
     onFilterChange();
   });
 
-  el.tax.addEventListener("change", () => {
-    const value = Number(el.tax.value);
-    settings.tax = Number.isFinite(value) && value >= 0 ? value : DEFAULTS.tax;
-    onPricingChange();
-  });
-
-  el.croco.addEventListener("change", () => {
-    const value = Math.round(Number(el.croco.value));
-    settings.crocodileLevel = Number.isFinite(value) ? Math.min(10, Math.max(0, value)) : 0;
-    onPricingChange();
-  });
-
   let searchTimer;
   el.search.addEventListener("input", () => {
     clearTimeout(searchTimer);
@@ -490,11 +327,6 @@ function bindControls() {
       state.limit = PAGE_SIZE;
       render();
     }, 120);
-  });
-
-  el.volume.addEventListener("change", () => {
-    settings.minVolume = Math.max(0, Number(el.volume.value) || 0);
-    onFilterChange();
   });
 
   el.budget.addEventListener("change", () => {
@@ -513,42 +345,15 @@ function bindControls() {
     onFilterChange();
   });
 
-  el.priceCheck.addEventListener("change", () => {
-    settings.priceCheck = Number(el.priceCheck.value);
-    onFilterChange();
-  });
-
-  el.hideInflated.addEventListener("change", () => {
-    settings.hideInflated = el.hideInflated.checked;
-    onFilterChange();
-  });
-
   el.more.addEventListener("click", () => {
     state.limit += PAGE_SIZE;
     render();
   });
 
-  el.refresh.addEventListener("click", () => refreshPrices());
-  el.theme.addEventListener("click", toggleTheme);
-
-  el.rows.addEventListener("click", (e) => {
-    if (e.target.closest("a")) return;
-    const row = e.target.closest(".row");
-    if (row) toggleRow(row.dataset.key);
+  bindRowToggle(el.rows, (key) => {
+    state.expanded.has(key) ? state.expanded.delete(key) : state.expanded.add(key);
+    render();
   });
-  el.rows.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter" && e.key !== " ") return;
-    const row = e.target.closest(".row");
-    if (!row) return;
-    e.preventDefault();
-    toggleRow(row.dataset.key);
-    el.rows.querySelector(`.row[data-key="${row.dataset.key}"]`)?.focus();
-  });
-}
-
-function toggleRow(key) {
-  state.expanded.has(key) ? state.expanded.delete(key) : state.expanded.add(key);
-  render();
 }
 
 function onPricingChange() {
@@ -566,48 +371,13 @@ function onFilterChange() {
 }
 
 function syncControls() {
-  for (const group of document.querySelectorAll(".segmented")) {
-    for (const button of group.querySelectorAll("button")) {
-      button.setAttribute("aria-checked", String(button.dataset.value === settings[group.dataset.setting]));
-    }
-  }
+  syncSharedControls();
   for (const chip of el.rarityChips.querySelectorAll(".chip")) {
     chip.setAttribute("aria-pressed", String(settings.rarities.includes(chip.dataset.rarity)));
   }
-  el.tax.value = settings.tax;
-  el.croco.value = settings.crocodileLevel;
-  el.volume.value = settings.minVolume || "";
   el.budget.value = settings.maxCost ?? "";
   el.sort.value = settings.sort;
   el.unique.checked = settings.unique;
-  el.priceCheck.value = String(settings.priceCheck);
-  el.hideInflated.checked = settings.hideInflated;
-  el.hideInflated.disabled = !settings.priceCheck;
-  syncThemeIcon();
-}
-
-/* ---------- Theme ---------- */
-
-function effectiveTheme() {
-  const forced = document.documentElement.dataset.theme;
-  if (forced) return forced;
-  return matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-}
-
-function toggleTheme() {
-  const next = effectiveTheme() === "dark" ? "light" : "dark";
-  document.documentElement.dataset.theme = next;
-  try {
-    localStorage.setItem(THEME_KEY, next);
-  } catch {
-    // Theme choice just won't persist.
-  }
-  syncThemeIcon();
-}
-
-function syncThemeIcon() {
-  const icon = el.theme.querySelector("i");
-  icon.className = `ph ${effectiveTheme() === "dark" ? "ph-sun" : "ph-moon"}`;
 }
 
 init();
