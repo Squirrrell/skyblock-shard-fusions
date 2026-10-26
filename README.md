@@ -4,7 +4,9 @@ A small web dashboard that ranks Hypixel SkyBlock shard fusions by profit, using
 
 Pick how you buy the inputs (insta-buy or buy order) and how you sell the result (insta-sell or sell offer). The table recalculates every fusion pair and shows the ones that make money right now. Prices refresh automatically every 60 seconds.
 
-## Run it
+**Live site:** https://squirrrell.github.io/skyblock-shard-fusions/ (chains page: [/chains.html](https://squirrrell.github.io/skyblock-shard-fusions/chains.html)). GitHub Pages redeploys it automatically on every push to `main`.
+
+## Run it locally
 
 It's a static site with no build step. Serve the folder with any static server:
 
